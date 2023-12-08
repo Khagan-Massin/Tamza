@@ -1,24 +1,64 @@
 import './style.css'
-import typescriptLogo from './typescript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.ts'
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
-  </div>
-`
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+let isRecording: boolean = false;
+const mediaConstraints = { audio: true };
+let mediaRecorder: MediaRecorder;
+let recordedChunks: Blob[] = [];
+
+
+
+
+
+document.querySelector('#stopstart-button').addEventListener('click', () => {
+
+  if (!isRecording) {
+    startRecording()
+    return
+  } else {
+    stopRecording()
+    return  
+  }
+
+  throw new Error('Something went wrong and I don\'t know what');
+}
+
+)
+
+function startRecording() {
+
+  console.log('start recording')
+
+  isRecording = true
+
+  navigator.mediaDevices.getUserMedia(mediaConstraints).then((stream) => {
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.start();
+
+    mediaRecorder.addEventListener("dataavailable", function (event) {
+      if (event.data.size > 0) {
+        recordedChunks.push(event.data);
+      }
+    });
+
+    mediaRecorder.addEventListener("stop", function () {
+      const audioBlob = new Blob(recordedChunks, {
+        type: "audio/wav",
+      });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      audio.play();
+    });
+  });
+
+  
+}
+
+function stopRecording() {
+
+  console.log('stop recording')
+
+  isRecording = false;
+  mediaRecorder.stop();
+}
+ 
