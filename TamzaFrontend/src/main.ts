@@ -1,14 +1,19 @@
 import './style.css'
 
+const stopStartButton = document.querySelector('#stopstart-button')
+const playButton = document.querySelector('#play-button')
+const saveButton = document.querySelector('#save-button')
+
 
 let isRecording: boolean = false;
+
 const mediaConstraints = { audio: true };
 let mediaRecorder: MediaRecorder;
 let recordedChunks: Blob[] = [];
 
-
-
-
+function hasRecording(): boolean {
+  return recordedChunks.length > 0
+}
 
 document.querySelector('#stopstart-button').addEventListener('click', () => {
 
@@ -27,6 +32,12 @@ document.querySelector('#stopstart-button').addEventListener('click', () => {
 
 function startRecording() {
 
+  if (isRecording) {
+    throw new Error('Already recording')
+  }
+
+  stopStartButton.innerHTML = 'Stop Recording'
+
   console.log('start recording')
 
   isRecording = true
@@ -42,12 +53,7 @@ function startRecording() {
     });
 
     mediaRecorder.addEventListener("stop", function () {
-      const audioBlob = new Blob(recordedChunks, {
-        type: "audio/wav",
-      });
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-      audio.play();
+      
     });
   });
 
@@ -55,10 +61,59 @@ function startRecording() {
 }
 
 function stopRecording() {
-
-  console.log('stop recording')
-
   isRecording = false;
   mediaRecorder.stop();
+
+  stopStartButton.innerHTML = 'Stop Recording'
 }
  
+
+function playAudio() {
+
+  if (!hasRecording()) {
+    throw new Error('No recording to play')
+  }
+
+  console.log('play audio')
+  const audioBlob = new Blob(recordedChunks, {
+    type: "audio/wav",
+  });
+  const audioUrl = URL.createObjectURL(audioBlob);
+  const audio = new Audio(audioUrl);
+  audio.play();
+}
+
+function saveAudio() {
+  if (!hasRecording()) {
+    throw new Error('No recording to save')
+  }
+  // put them in a from with key 'file'
+
+  const form: FormData = new FormData();
+
+  const blob: Blob = new Blob(recordedChunks, { type: 'audio/mp3' });
+
+  form.append('file', blob, 'audio.mp3');
+
+  // TODO: figure out how uri works
+   fetch('/api/Memo', {
+    method: 'POST',
+    body: form
+  }).then(
+    (response) => {
+      console.log(response)
+
+      if (response.status === 200) {
+
+          response.json().then((data) => {
+            document.querySelector('#audio-id').innerHTML = data;
+          })
+         
+    
+        }
+    
+}
+)
+}
+
+
