@@ -1,44 +1,72 @@
 import './style.css'
 
-const stopStartButton = document.querySelector('#stopstart-button')
-const playButton = document.querySelector('#play-button')
-const saveButton = document.querySelector('#save-button')
+// ok dont burn me alive for this
 
+const backendUrl = 'https://localhost:7097'
 
+const stopStartButton = document.querySelector('#stopstart-button') as HTMLButtonElement
+
+// Dom Elements
+const playButton = document.querySelector('#play-button') as HTMLButtonElement
+const uploadButton = document.querySelector('#upload-button') as HTMLButtonElement
+const saveButton = document.querySelector('#save-button') as HTMLButtonElement
+const audioId = document.querySelector('#audio-id') as HTMLParagraphElement
+
+playButton.addEventListener('click', playAudio)
+uploadButton.addEventListener('click', uploadAudio)
+saveButton.addEventListener('click', saveAudio)
+stopStartButton.addEventListener('click', stopStartButtonClicked)
+
+// State
 let isRecording: boolean = false;
 
 const mediaConstraints = { audio: true };
 let mediaRecorder: MediaRecorder;
 let recordedChunks: Blob[] = [];
 
+
 function hasRecording(): boolean {
   return recordedChunks.length > 0
 }
 
-document.querySelector('#stopstart-button').addEventListener('click', () => {
+
+
+/**
+ * called when the stop start button is clicked
+ * when recording, stops recording
+ * and vice versa
+ * keep track of state with isRecording
+ */
+function stopStartButtonClicked() {
+  console.log('stop start button clicked')
 
   if (!isRecording) {
     startRecording()
-    return
+    
   } else {
     stopRecording()
-    return  
+    
   }
 
-  throw new Error('Something went wrong and I don\'t know what');
+  console.log('After: isRecording: ' + isRecording)
 }
 
-)
-
+/**
+ * starts recording
+ * sets isRecording to true
+ * sets mediaRecorder to a new MediaRecorder
+ * adds event listeners to mediaRecorder
+ */
 function startRecording() {
 
   if (isRecording) {
     throw new Error('Already recording')
   }
 
-  stopStartButton.innerHTML = 'Stop Recording'
+  // reset recorded chunks
+  recordedChunks = []
 
-  console.log('start recording')
+  stopStartButton.innerHTML = 'Stop Recording'
 
   isRecording = true
 
@@ -53,20 +81,20 @@ function startRecording() {
     });
 
     mediaRecorder.addEventListener("stop", function () {
-      
+
     });
   });
 
-  
+
 }
 
 function stopRecording() {
   isRecording = false;
   mediaRecorder.stop();
 
-  stopStartButton.innerHTML = 'Stop Recording'
+  stopStartButton.innerHTML = 'Start Recording'
 }
- 
+
 
 function playAudio() {
 
@@ -74,16 +102,20 @@ function playAudio() {
     throw new Error('No recording to play')
   }
 
-  console.log('play audio')
+
   const audioBlob = new Blob(recordedChunks, {
-    type: "audio/wav",
+    type: "audio/mp3",
   });
+
   const audioUrl = URL.createObjectURL(audioBlob);
   const audio = new Audio(audioUrl);
   audio.play();
 }
 
-function saveAudio() {
+function uploadAudio() {
+
+  console.log('uploading audio')
+
   if (!hasRecording()) {
     throw new Error('No recording to save')
   }
@@ -96,24 +128,40 @@ function saveAudio() {
   form.append('file', blob, 'audio.mp3');
 
   // TODO: figure out how uri works
-   fetch('/api/Memo', {
+
+  
+
+
+  fetch(backendUrl + '/api/Memo', {
     method: 'POST',
     body: form
   }).then(
     (response) => {
-      console.log(response)
+      
 
       if (response.status === 200) {
 
-          response.json().then((data) => {
-            document.querySelector('#audio-id').innerHTML = data;
-          })
-         
-    
-        }
-    
-}
-)
-}
+        response.text().then((data) => {
+
+          console.log('data: ' + data)
+
+          audioId.innerHTML = data
+        })
 
 
+      }
+
+    }
+  
+  )
+}
+
+function saveAudio() {
+  if (!hasRecording()) {
+    throw new Error('No recording to upload')
+  }
+  const blob: Blob = new Blob(recordedChunks, { type: 'audio/mp3' });
+  window.open(URL.createObjectURL(blob))
+
+
+}
