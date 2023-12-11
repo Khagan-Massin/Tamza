@@ -71,8 +71,8 @@ function startRecording() {
   isRecording = true
 
   navigator.mediaDevices.getUserMedia(mediaConstraints).then((stream) => {
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.start();
+  mediaRecorder = new MediaRecorder(stream);
+  mediaRecorder.start();
 
     mediaRecorder.addEventListener("dataavailable", function (event) {
       if (event.data.size > 0) {
@@ -81,7 +81,7 @@ function startRecording() {
     });
 
     mediaRecorder.addEventListener("stop", function () {
-
+      console.log('recording stopped')
     });
   });
 
