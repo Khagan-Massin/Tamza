@@ -173,8 +173,6 @@ function uploadAudio() {
 
         response.text().then((data) => {
 
-          console.log('data: ' + data)
-
           audioId.innerHTML = data
         })
 
