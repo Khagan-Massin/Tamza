@@ -7,13 +7,17 @@
     <title>Tamza</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app"> 
     <script type="module" src="/src/main.ts"></script>
 
     <div class="card">
 
       <button id="stopstart-button">
         Start Recording
+      </button>
+
+      <button id="restart-button">
+        Restart
       </button>
   
       <button id="play-button">
@@ -28,10 +32,18 @@
         Save
       </button>
 
+      
+
       <p>
         Id: <span id="audio-id">...</span>
       </p>
 
+
+    </div>
+
+    <div class="player">
+      <audio id="audio-player" controls></audio>
+    </div>
 
     </div>
     

@@ -11,19 +11,22 @@ const playButton = document.querySelector('#play-button') as HTMLButtonElement
 const uploadButton = document.querySelector('#upload-button') as HTMLButtonElement
 const saveButton = document.querySelector('#save-button') as HTMLButtonElement
 const audioId = document.querySelector('#audio-id') as HTMLParagraphElement
+const audioPlayer = document.querySelector('#audio-player') as HTMLAudioElement
+const restartButton = document.querySelector('#restart-button') as HTMLButtonElement
 
 playButton.addEventListener('click', playAudio)
 uploadButton.addEventListener('click', uploadAudio)
-saveButton.addEventListener('click', saveAudio)
+saveButton.addEventListener('click', downloadAudio)
 stopStartButton.addEventListener('click', stopStartButtonClicked)
+restartButton.addEventListener('click', restartRecording)
 
 // State
 let isRecording: boolean = false;
-
-const mediaConstraints = { audio: true };
 let mediaRecorder: MediaRecorder;
 let recordedChunks: Blob[] = [];
 
+// Constants
+const mediaConstraints = { audio: true };
 
 function hasRecording(): boolean {
   return recordedChunks.length > 0
@@ -73,26 +76,39 @@ function startRecording() {
   navigator.mediaDevices.getUserMedia(mediaConstraints).then((stream) => {
   mediaRecorder = new MediaRecorder(stream);
   mediaRecorder.start();
+ 
 
     mediaRecorder.addEventListener("dataavailable", function (event) {
       if (event.data.size > 0) {
         recordedChunks.push(event.data);
+       
+        console.log(recordedChunks  )
+        
       }
     });
 
     mediaRecorder.addEventListener("stop", function () {
       console.log('recording stopped')
+      putAudioInPlayer()
     });
   });
-
+ 
 
 }
 
 function stopRecording() {
+
+ 
   isRecording = false;
   mediaRecorder.stop();
 
   stopStartButton.innerHTML = 'Start Recording'
+ 
+
+  
+  // if you want something to happen after recording stops 
+  // put it in the stop event listener not here
+   
 }
 
 
@@ -129,12 +145,26 @@ function uploadAudio() {
 
   // TODO: figure out how uri works
 
+  const req: Request = new Request(backendUrl + '/api/Memo', {
+    method: 'POST',
+    body: form,
+    headers: {
+      'Access-Control-Allow-Origin': backendUrl
+    }
+  })
+
+  console.log(req)
+
   
 
 
   fetch(backendUrl + '/api/Memo', {
     method: 'POST',
-    body: form
+    body: form,
+    mode: 'cors',
+    headers: {
+      'Access-Control-Allow-Origin': backendUrl
+    }
   }).then(
     (response) => {
       
@@ -161,7 +191,41 @@ function saveAudio() {
     throw new Error('No recording to upload')
   }
   const blob: Blob = new Blob(recordedChunks, { type: 'audio/mp3' });
-  window.open(URL.createObjectURL(blob))
 
+  const soundfile = URL.createObjectURL(blob)
+ 
+  return soundfile
+}
 
+function putAudioInPlayer() {
+  const file = saveAudio()
+  audioPlayer.src = file
+}
+
+function downloadAudio() {
+  const file = saveAudio()
+
+  const a = document.createElement('a')
+  a.href = file
+  a.download = 'audio.mp3'
+
+  document.body.appendChild(a)
+
+  a.click()
+
+  document.body.removeChild(a)
+}
+
+function restartRecording() {
+   
+
+  if (isRecording) {
+    mediaRecorder.stop()
+  }
+
+  recordedChunks = []
+  isRecording = false // this is a lie but it works 
+  startRecording()
+
+  
 }
