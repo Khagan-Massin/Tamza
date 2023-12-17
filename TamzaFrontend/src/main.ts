@@ -1,5 +1,10 @@
 import './style.css'
 
+ 
+
+// Clear the existing HTML content
+ 
+
 // ok dont burn me alive for this
 
 const backendUrl = 'https://localhost:7097'
@@ -98,14 +103,11 @@ function startRecording() {
 
 function stopRecording() {
 
- 
   isRecording = false;
   mediaRecorder.stop();
 
   stopStartButton.innerHTML = 'Start Recording'
- 
-
-  
+   
   // if you want something to happen after recording stops 
   // put it in the stop event listener not here
    
@@ -143,21 +145,6 @@ function uploadAudio() {
 
   form.append('file', blob, 'audio.mp3');
 
-  // TODO: figure out how uri works
-
-  const req: Request = new Request(backendUrl + '/api/Memo', {
-    method: 'POST',
-    body: form,
-    headers: {
-      'Access-Control-Allow-Origin': backendUrl
-    }
-  })
-
-  console.log(req)
-
-  
-
-
   fetch(backendUrl + '/api/Memo', {
     method: 'POST',
     body: form,
@@ -168,14 +155,11 @@ function uploadAudio() {
   }).then(
     (response) => {
       
-
       if (response.status === 200) {
 
         response.text().then((data) => {
-
           audioId.innerHTML = data
         })
-
 
       }
 

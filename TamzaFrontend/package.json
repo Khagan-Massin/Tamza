@@ -10,7 +10,12 @@
     "start": "vite"
   },
   "devDependencies": {
+    "@types/react-dom": "^18.2.18",
     "typescript": "^5.2.2",
     "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   }
 }
