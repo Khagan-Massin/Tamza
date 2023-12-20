@@ -41,7 +41,8 @@ namespace Tamza.Controllers
                 return BadRequest("No file received.");
             }
 
-            if (file.ContentType != "audio/mp3")
+            // check if type is audio
+            if (file.ContentType != "audio/mpeg")
             {
                 return BadRequest("Not an audio file.");
             }
@@ -78,7 +79,7 @@ namespace Tamza.Controllers
 
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         public async Task<IActionResult> Get(string id)
         {
             Console.WriteLine(id);
