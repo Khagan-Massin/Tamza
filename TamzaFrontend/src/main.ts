@@ -11,66 +11,52 @@ const audioPlayer = document.querySelector("#audio-player") as HTMLAudioElement;
 const search_button = document.querySelector("#search-button") as HTMLButtonElement;
 const id_input = document.querySelector("#id_input") as HTMLInputElement;
 
+const recorderContainer = document.querySelector("#recorder-container") as HTMLDivElement;
+const searchContainer = document.querySelector("#search-container") as HTMLDivElement;
+const playerContainer = document.querySelector("#player-container") as HTMLDivElement;
+
 // Event Listeners
 playButton.addEventListener("click", () => {
   playAudio();
   render();
 });
+
 uploadButton.addEventListener("click", () => {
   uploadAudio();
   render();
 });
+
 saveButton.addEventListener("click", () => {
   downloadAudio();
   render();
 });
 
 stopStartButton.addEventListener("click", () => {
-  stopStartButtonClicked();
+  isRecording ? stopRecording() : startRecording();
   render();
 });
 
 search_button.addEventListener("click", () => {
   fetchAudio();
-   
+  id_input.value = "";
+  render();
 });
 
 // State
 let isRecording: boolean = false;
 let mediaRecorder: MediaRecorder;
 let recordedChunks: Blob[] = [];
-
 let recordedMemoURI: string;
-let fetchedMemoURI: string;
+
 
 // Constants
 const mediaConstraints = { audio: true };
 const audioType = "audio/mp3";
 
-// Lets get started in here
 render();
 
 function hasRecording(): boolean {
-  console.log("hasRecording: " + (recordedChunks.length > 0));
-  return recordedChunks.length > 0;
-}
-
-/**
- * called when the stop start button is clicked
- * when recording, stops recording
- * and vice versa
- * keep track of state with isRecording
- */
-function stopStartButtonClicked() {
-  console.log("stop start button clicked");
-
-  if (!isRecording) {
-    startRecording();
-  } else {
-    stopRecording();
-  }
-
-  console.log("After: isRecording: " + isRecording);
+  return recordedChunks.length > 0 || recordedMemoURI != null;
 }
 
 /**
@@ -89,6 +75,7 @@ function startRecording() {
 
   stopStartButton.innerText = "Stop Recording";
 
+
   isRecording = true;
 
   navigator.mediaDevices.getUserMedia(mediaConstraints).then((stream) => {
@@ -98,17 +85,12 @@ function startRecording() {
     mediaRecorder.addEventListener("dataavailable", function (event) {
       if (event.data.size > 0) {
         recordedChunks.push(event.data);
-
-        console.log(recordedChunks);
       }
     });
 
     mediaRecorder.addEventListener("stop", function () {
-      console.log("recording stopped");
-
-      
-
-      putAudioInPlayer();
+      createRecordedFile();
+      audioPlayer.src = recordedMemoURI;
     });
   });
 }
@@ -121,32 +103,22 @@ function stopRecording() {
 }
 
 function playAudio() {
-  if (!hasRecording()) {
-    throw new Error("No recording to play");
-  }
+  if (!hasRecording()) throw new Error("No recording to play");
+  
+  const blob = new Blob(recordedChunks, {type: audioType});
 
-  const audioBlob = new Blob(recordedChunks, {
-    type: audioType,
-  });
-
-  const audioUrl = URL.createObjectURL(audioBlob);
+  const audioUrl = URL.createObjectURL(blob);
   const audio = new Audio(audioUrl);
   audio.play();
 }
 
 function uploadAudio() {
-  console.log("uploading audio");
 
-  if (!hasRecording()) {
-    throw new Error("No recording to save");
-  }
-  // put them in a from with key 'file'
+  if (!hasRecording()) throw new Error("No recording to save");
 
   const blob: Blob = new Blob(recordedChunks, { type: audioType });
 
-  const memoService = new MemoService();
-
-  memoService.postMemo(blob).then((id) => {
+  MemoService.postMemo(blob).then((id) => {
     audioId.innerText = id;
   });
 }
@@ -156,29 +128,29 @@ function uploadAudio() {
  * @throws {Error} If there is no recording to upload.
  * @returns {string} The URL of the saved sound file.
  */
-function getRecordedAudio() {
+function createRecordedFile(): string {
   if (!hasRecording()) {
-    throw new Error("No recording to upload");
+    throw new Error("No recording to file");
   }
   const blob: Blob = new Blob(recordedChunks, { type: audioType });
 
   const soundfile = URL.createObjectURL(blob);
 
-  return soundfile;
+  recordedMemoURI = soundfile;
+
+  return recordedMemoURI;
 }
 
 /**
  * Puts the audio file in the player.
  */
-function putAudioInPlayer() {
-  audioPlayer.src = getRecordedAudio();
-}
+
 
 /**
  * Downloads the audio file by creating a temporary link element and triggering a click event.
  */
 function downloadAudio() {
-  const file = getRecordedAudio();
+  const file = createRecordedFile();
 
   const a = document.createElement("a");
   a.href = file;
@@ -192,16 +164,14 @@ function downloadAudio() {
 }
 
 function fetchAudio() {
-  const memoService = new MemoService();
-  memoService.getMemo(id_input.value).then((memo) => {
-    const audioUrl = URL.createObjectURL(memo.blob, );
+  MemoService.getMemo(id_input.value).then((memo) => {
+    const audioUrl = URL.createObjectURL(memo.blob,);
     audioPlayer.src = audioUrl;
   });
-} 
+}
 
- 
 /**
- * Renders the UI based on the current state of the application.
+ * Changes the UI based on the state of the application.
  */
 function render() {
 
@@ -210,11 +180,13 @@ function render() {
     playButton.disabled = true;
     uploadButton.disabled = true;
     saveButton.disabled = true;
+    search_button.disabled = true;
   } else {
     stopStartButton.innerText = "Start Recording";
     playButton.disabled = false;
     uploadButton.disabled = false;
     saveButton.disabled = false;
+    search_button.disabled = false;
   }
 
 }
