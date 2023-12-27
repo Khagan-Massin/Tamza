@@ -10,7 +10,7 @@
     <div id="app"> 
     <script type="module" src="/src/main.ts"></script>
 
-    <div class="card">
+    <div id="recorder" class="card">
 
       <button id="stopstart-button">
         Start Recording
@@ -32,15 +32,30 @@
       
 
       <p>
-        Id: <span id="audio-id">...</span>
+        Your memo's id: <span id="audio-id">...</span>
       </p>
 
 
     </div>
 
-    <div class="player">
+
+    <div id="search" class="card">
+        <label for="">Copy your id here</label>
+        <br>
+        <button id="search-button">
+          Search
+        </button>
+        <input type="text" name="id_input" id="id_input">
+       
+    </div>
+
+
+
+    <div id="player-container" class="card">
       <audio id="audio-player" controls></audio>
     </div>
+
+     
 
     </div>
     

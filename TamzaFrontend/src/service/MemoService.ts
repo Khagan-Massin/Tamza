@@ -7,8 +7,17 @@ export class MemoService {
 
     async getMemo(id: string): Promise<VoiceMemo> {
 
+        const request = new Request(MemoService.backendUrl + "/api/memo/?id=" + id, {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+                'Access-Control-Allow-Origin': MemoService.backendUrl
+            }
+        });
 
-        const response = await fetch(MemoService.backendUrl + "/memo/" + id)
+        console.log(request);
+
+        const response = await fetch(request)
         const blob = await response.blob();
         return new VoiceMemo(id, blob);
 

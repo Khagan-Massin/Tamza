@@ -1,46 +1,59 @@
-import { MemoService } from './service/MemoService'
-import './style.css'
-
-
-
-// Clear the existing HTML content
- 
-
-// ok dont burn me alive for this
-
-
-const stopStartButton = document.querySelector('#stopstart-button') as HTMLButtonElement
+import { MemoService } from "./service/MemoService";
+import "./style.css";
 
 // Dom Elements
-const playButton = document.querySelector('#play-button') as HTMLButtonElement
-const uploadButton = document.querySelector('#upload-button') as HTMLButtonElement
-const saveButton = document.querySelector('#save-button') as HTMLButtonElement
-const audioId = document.querySelector('#audio-id') as HTMLParagraphElement
-const audioPlayer = document.querySelector('#audio-player') as HTMLAudioElement
+const stopStartButton = document.querySelector("#stopstart-button") as HTMLButtonElement;
+const playButton = document.querySelector("#play-button") as HTMLButtonElement;
+const uploadButton = document.querySelector("#upload-button") as HTMLButtonElement;
+const saveButton = document.querySelector("#save-button") as HTMLButtonElement;
+const audioId = document.querySelector("#audio-id") as HTMLParagraphElement;
+const audioPlayer = document.querySelector("#audio-player") as HTMLAudioElement;
+const search_button = document.querySelector("#search-button") as HTMLButtonElement;
+const id_input = document.querySelector("#id_input") as HTMLInputElement;
 
 // Event Listeners
-playButton.addEventListener('click', playAudio)
-uploadButton.addEventListener('click', uploadAudio)
-saveButton.addEventListener('click', downloadAudio)
-stopStartButton.addEventListener('click', stopStartButtonClicked)
+playButton.addEventListener("click", () => {
+  playAudio();
+  render();
+});
+uploadButton.addEventListener("click", () => {
+  uploadAudio();
+  render();
+});
+saveButton.addEventListener("click", () => {
+  downloadAudio();
+  render();
+});
+
+stopStartButton.addEventListener("click", () => {
+  stopStartButtonClicked();
+  render();
+});
+
+search_button.addEventListener("click", () => {
+  fetchAudio();
+   
+});
 
 // State
 let isRecording: boolean = false;
 let mediaRecorder: MediaRecorder;
 let recordedChunks: Blob[] = [];
 
+let recordedMemoURI: string;
+let fetchedMemoURI: string;
+
 // Constants
 const mediaConstraints = { audio: true };
+const audioType = "audio/mp3";
 
-// Lets get started
-render()
+// Lets get started in here
+render();
 
 function hasRecording(): boolean {
-  console.log('hasRecording: ' + (recordedChunks.length > 0))
-  return recordedChunks.length > 0
+  console.log("hasRecording: " + (recordedChunks.length > 0));
+  return recordedChunks.length > 0;
 }
-
-
 
 /**
  * called when the stop start button is clicked
@@ -49,17 +62,15 @@ function hasRecording(): boolean {
  * keep track of state with isRecording
  */
 function stopStartButtonClicked() {
-  console.log('stop start button clicked')
+  console.log("stop start button clicked");
 
   if (!isRecording) {
-    startRecording()
-    
+    startRecording();
   } else {
-    stopRecording()
-    
+    stopRecording();
   }
 
-  console.log('After: isRecording: ' + isRecording)
+  console.log("After: isRecording: " + isRecording);
 }
 
 /**
@@ -69,60 +80,53 @@ function stopStartButtonClicked() {
  * adds event listeners to mediaRecorder
  */
 function startRecording() {
-
   if (isRecording) {
-    throw new Error('Already recording')
+    throw new Error("Already recording");
   }
 
   // reset recorded chunks
-  recordedChunks = []
+  recordedChunks = [];
 
-  stopStartButton.innerHTML = 'Stop Recording'
+  stopStartButton.innerText = "Stop Recording";
 
-  isRecording = true
+  isRecording = true;
 
   navigator.mediaDevices.getUserMedia(mediaConstraints).then((stream) => {
-  mediaRecorder = new MediaRecorder(stream);
-  mediaRecorder.start();
- 
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.start();
 
     mediaRecorder.addEventListener("dataavailable", function (event) {
       if (event.data.size > 0) {
         recordedChunks.push(event.data);
-       
-        console.log(recordedChunks  )
-        
+
+        console.log(recordedChunks);
       }
     });
 
     mediaRecorder.addEventListener("stop", function () {
-      console.log('recording stopped')
-      putAudioInPlayer()
+      console.log("recording stopped");
+
+      
+
+      putAudioInPlayer();
     });
   });
- 
-
 }
 
 function stopRecording() {
-
   isRecording = false;
   mediaRecorder.stop();
 
-  stopStartButton.innerHTML = 'Start Recording'
-
+  stopStartButton.innerText = "Start Recording";
 }
 
-
 function playAudio() {
-
   if (!hasRecording()) {
-    throw new Error('No recording to play')
+    throw new Error("No recording to play");
   }
 
-
   const audioBlob = new Blob(recordedChunks, {
-    type: "audio/mp3",
+    type: audioType,
   });
 
   const audioUrl = URL.createObjectURL(audioBlob);
@@ -131,78 +135,86 @@ function playAudio() {
 }
 
 function uploadAudio() {
-
-  console.log('uploading audio')
+  console.log("uploading audio");
 
   if (!hasRecording()) {
-    throw new Error('No recording to save')
+    throw new Error("No recording to save");
   }
   // put them in a from with key 'file'
 
-  const blob: Blob = new Blob(recordedChunks, { type: 'audio/mp3' });
+  const blob: Blob = new Blob(recordedChunks, { type: audioType });
 
-  const memoService = new MemoService()
+  const memoService = new MemoService();
 
   memoService.postMemo(blob).then((id) => {
-    audioId.innerHTML = id
-   });
-  
-   
+    audioId.innerText = id;
+  });
 }
 
-function saveAudio() {
+/**
+ * Saves the recorded audio as a sound file and returns the URL of the file.
+ * @throws {Error} If there is no recording to upload.
+ * @returns {string} The URL of the saved sound file.
+ */
+function getRecordedAudio() {
   if (!hasRecording()) {
-    throw new Error('No recording to upload')
+    throw new Error("No recording to upload");
   }
-  const blob: Blob = new Blob(recordedChunks, { type: 'audio/mp3' });
+  const blob: Blob = new Blob(recordedChunks, { type: audioType });
 
-  const soundfile = URL.createObjectURL(blob)
- 
-  return soundfile
+  const soundfile = URL.createObjectURL(blob);
+
+  return soundfile;
 }
 
+/**
+ * Puts the audio file in the player.
+ */
 function putAudioInPlayer() {
-  const file = saveAudio()
-  audioPlayer.src = file
+  audioPlayer.src = getRecordedAudio();
 }
 
+/**
+ * Downloads the audio file by creating a temporary link element and triggering a click event.
+ */
 function downloadAudio() {
-  const file = saveAudio()
+  const file = getRecordedAudio();
 
-  const a = document.createElement('a')
-  a.href = file
-  a.download = 'audio.mp3'
+  const a = document.createElement("a");
+  a.href = file;
+  a.download = "audio.mp3";
 
-  document.body.appendChild(a)
+  document.body.appendChild(a);
 
-  a.click()
+  a.click();
 
-  document.body.removeChild(a)
+  document.body.removeChild(a);
 }
 
+function fetchAudio() {
+  const memoService = new MemoService();
+  memoService.getMemo(id_input.value).then((memo) => {
+    const audioUrl = URL.createObjectURL(memo.blob, );
+    audioPlayer.src = audioUrl;
+  });
+} 
+
+ 
+/**
+ * Renders the UI based on the current state of the application.
+ */
 function render() {
-  console.log('rendering')
 
   if (isRecording) {
-    stopStartButton.innerHTML = 'Stop Recording'
-  }
-  else {
-    stopStartButton.innerHTML = 'Start Recording'
-  }
-     
-
-  if (hasRecording()) {
-    playButton.disabled = false
-    uploadButton.disabled = false
-    saveButton.disabled = false
+    stopStartButton.innerText = "Stop Recording";
+    playButton.disabled = true;
+    uploadButton.disabled = true;
+    saveButton.disabled = true;
   } else {
-    playButton.disabled = true
-    uploadButton.disabled = true
-    saveButton.disabled = true
+    stopStartButton.innerText = "Start Recording";
+    playButton.disabled = false;
+    uploadButton.disabled = false;
+    saveButton.disabled = false;
   }
-
-  
 
 }
-
- 
