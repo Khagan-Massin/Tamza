@@ -3,10 +3,22 @@
 namespace Tamza.Controllers
 {
 
+
+
     [Route("api/[controller]")]
     [ApiController]
-    public class MemoController : ControllerBase{
+    public class MemoController : ControllerBase
+    {
+
+
         private readonly string foldername = "AudioFiles";
+        // commonly used mime types for audio files
+        private readonly string[] allowedMimeTypes = new string[] { 
+            "audio/mpeg", "audio/mp3", "audio/wav", 
+            "audio/x-wav", "audio/ogg", "audio/x-flac", 
+            "audio/x-aiff", "audio/x-m4a", "audio/x-ms-wma"
+        };
+
 
         [HttpPost]
         [Route("echo")]
@@ -31,17 +43,15 @@ namespace Tamza.Controllers
         }
 
         [HttpPost]
-        // cors
-      
         public async Task<IActionResult> Post(IFormFile file)
-        {   
+        {
 
             if (file == null)
             {
                 return BadRequest("No file received.");
             }
 
-            if (file.ContentType != "audio/mp3")
+            if (!this.allowedMimeTypes.Contains(file.ContentType))
             {
                 return BadRequest("Not an audio file.");
             }
@@ -53,7 +63,7 @@ namespace Tamza.Controllers
             }
 
             string directoryPath = Path.Combine(Directory.GetCurrentDirectory(), this.foldername);
-        
+
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);

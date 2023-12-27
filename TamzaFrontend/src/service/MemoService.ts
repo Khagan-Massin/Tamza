@@ -2,7 +2,8 @@ import { VoiceMemo } from "../service/model/VoiceMemo";
 
 export class MemoService {
 
-    private static backendUrl = "http://localhost:7097";
+    // ok be sure to make this a env variable and also its https
+    private static backendUrl = "https://localhost:7097";
 
     async getMemo(id: string): Promise<VoiceMemo> {
 
@@ -12,10 +13,15 @@ export class MemoService {
         return new VoiceMemo(id, blob);
 
     }
-
+    //js doc
+    /**
+     * 
+     * @param blob of the voice memo 
+     * @returns the id of the memo
+     */
     async postMemo(memo: Blob): Promise<string> {
         const formData = new FormData();
-        formData.append("file", memo);
+        formData.append("file", memo, "audio.mp3");
 
         const response = await fetch(MemoService.backendUrl + '/api/Memo', {
             method: 'POST',
@@ -26,11 +32,8 @@ export class MemoService {
             }
         })
 
-        if (response.ok) {
-            return await response.text(); // returns the id of the memo
-        }
+  
 
-        // TODO: handle error
-        throw new Error("Error posting memo");
+        return response.text();
     }
 }

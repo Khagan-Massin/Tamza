@@ -1,13 +1,13 @@
+import { MemoService } from './service/MemoService'
 import './style.css'
 
- 
+
 
 // Clear the existing HTML content
  
 
 // ok dont burn me alive for this
 
-const backendUrl = 'https://localhost:7097'
 
 const stopStartButton = document.querySelector('#stopstart-button') as HTMLButtonElement
 
@@ -17,13 +17,12 @@ const uploadButton = document.querySelector('#upload-button') as HTMLButtonEleme
 const saveButton = document.querySelector('#save-button') as HTMLButtonElement
 const audioId = document.querySelector('#audio-id') as HTMLParagraphElement
 const audioPlayer = document.querySelector('#audio-player') as HTMLAudioElement
-const restartButton = document.querySelector('#restart-button') as HTMLButtonElement
 
+// Event Listeners
 playButton.addEventListener('click', playAudio)
 uploadButton.addEventListener('click', uploadAudio)
 saveButton.addEventListener('click', downloadAudio)
 stopStartButton.addEventListener('click', stopStartButtonClicked)
-restartButton.addEventListener('click', restartRecording)
 
 // State
 let isRecording: boolean = false;
@@ -33,7 +32,11 @@ let recordedChunks: Blob[] = [];
 // Constants
 const mediaConstraints = { audio: true };
 
+// Lets get started
+render()
+
 function hasRecording(): boolean {
+  console.log('hasRecording: ' + (recordedChunks.length > 0))
   return recordedChunks.length > 0
 }
 
@@ -107,10 +110,7 @@ function stopRecording() {
   mediaRecorder.stop();
 
   stopStartButton.innerHTML = 'Start Recording'
-   
-  // if you want something to happen after recording stops 
-  // put it in the stop event listener not here
-   
+
 }
 
 
@@ -139,33 +139,15 @@ function uploadAudio() {
   }
   // put them in a from with key 'file'
 
-  const form: FormData = new FormData();
-
   const blob: Blob = new Blob(recordedChunks, { type: 'audio/mp3' });
 
-  form.append('file', blob, 'audio.mp3');
+  const memoService = new MemoService()
 
-  fetch(backendUrl + '/api/Memo', {
-    method: 'POST',
-    body: form,
-    mode: 'cors',
-    headers: {
-      'Access-Control-Allow-Origin': backendUrl
-    }
-  }).then(
-    (response) => {
-      
-      if (response.status === 200) {
-
-        response.text().then((data) => {
-          audioId.innerHTML = data
-        })
-
-      }
-
-    }
+  memoService.postMemo(blob).then((id) => {
+    audioId.innerHTML = id
+   });
   
-  )
+   
 }
 
 function saveAudio() {
@@ -198,16 +180,29 @@ function downloadAudio() {
   document.body.removeChild(a)
 }
 
-function restartRecording() {
-   
+function render() {
+  console.log('rendering')
 
   if (isRecording) {
-    mediaRecorder.stop()
+    stopStartButton.innerHTML = 'Stop Recording'
+  }
+  else {
+    stopStartButton.innerHTML = 'Start Recording'
+  }
+     
+
+  if (hasRecording()) {
+    playButton.disabled = false
+    uploadButton.disabled = false
+    saveButton.disabled = false
+  } else {
+    playButton.disabled = true
+    uploadButton.disabled = true
+    saveButton.disabled = true
   }
 
-  recordedChunks = []
-  isRecording = false // this is a lie but it works 
-  startRecording()
-
   
+
 }
+
+ 
