@@ -11,9 +11,7 @@ const audioPlayer = document.querySelector("#audio-player") as HTMLAudioElement;
 const search_button = document.querySelector("#search-button") as HTMLButtonElement;
 const id_input = document.querySelector("#id_input") as HTMLInputElement;
 
-const recorderContainer = document.querySelector("#recorder-container") as HTMLDivElement;
-const searchContainer = document.querySelector("#search-container") as HTMLDivElement;
-const playerContainer = document.querySelector("#player-container") as HTMLDivElement;
+
 
 // Event Listeners
 playButton.addEventListener("click", () => {
