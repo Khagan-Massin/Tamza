@@ -6,8 +6,14 @@ import "./style.css";
 const stopStartButton = document.querySelector("#stopstart-button") as HTMLButtonElement;
 const uploadButton = document.querySelector("#upload-button") as HTMLButtonElement;
 const saveButton = document.querySelector("#save-button") as HTMLButtonElement;
+const clipboardButton = document.querySelector("#clipboard-button") as HTMLButtonElement;
 const created_audio_link = document.querySelector("#created-audio-link") as HTMLAnchorElement;
 const audioPlayer = document.querySelector("#audio-player") as HTMLAudioElement;
+
+const qrcodeImage = document.querySelector("#qrcode") as HTMLImageElement;
+const qrcodeModal = document.querySelector("#qrcode-modal") as HTMLDialogElement;
+const closeQRcodeModal = document.querySelector("#close-qrcode-modal") as HTMLButtonElement;
+const openQRcodeModal = document.querySelector("#open-qrcode-modal") as HTMLButtonElement;
 
 // State
 let isRecording: boolean = false;
@@ -30,6 +36,7 @@ const router = new Router();
 
 router.addRoute("listen", (params) => {
   const id = params["id"];
+  console.log("getting memo with id: " + id);
 
   MemoService.getMemo(id).then((memo) => {
     const audioUrl = URL.createObjectURL(memo.blob);
@@ -54,6 +61,30 @@ stopStartButton.onclick = () => {
   isRecording ? stopRecording() : startRecording();
   updateRecordingUIState();
 };
+
+clipboardButton.onclick = () => {
+  navigator.clipboard.writeText(created_audio_link.href);
+};
+
+openQRcodeModal.onclick = () => {
+
+  let link = created_audio_link.href;
+  if (link === "") {
+    if (window.location.href.includes("listen")) {
+      link = window.location.href;
+    } else {
+      alert("Please record or find a memo first!");
+      return;
+    }
+  }
+
+  qrcodeImage.src = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + link;
+  qrcodeModal.showModal();
+}
+
+closeQRcodeModal.onclick = () => {
+  qrcodeModal.close();
+}
 
 updateRecordingUIState();
 
@@ -82,14 +113,13 @@ function startRecording() {
     mediaRecorder.start();
 
     mediaRecorder.addEventListener("dataavailable", function (event) {
-      if (event.data.size > 0) {
+     
         audioChunks.push(event.data);
-      }
+        console.log(audioChunks)
     });
 
     mediaRecorder.addEventListener("stop", function () {
       createAudioFile(audioChunks);
-      audioPlayer.src = memoURI;
     });
   });
 }
@@ -97,7 +127,8 @@ function startRecording() {
 function stopRecording() {
   isRecording = false;
   mediaRecorder.stop();
-  stopStartButton.innerText = "Start Recording";
+  createAudioFile(audioChunks);
+  stopStartButton.innerText = "Start Recording";  
 }
 
 function uploadAudio() {
@@ -124,9 +155,11 @@ function uploadAudio() {
  * @returns {string} The URL of the saved sound file.
  */
 function createAudioFile(chunks: Blob[]): string {
-  if (!hasRecording()) throw new Error("No recording to file");
   const blob: Blob = new Blob(chunks, { type: audioType });
   const memoURI = URL.createObjectURL(blob);
+  //TODO: figure out why you have to set the src here and not in the event listener or stopRecording()
+  audioPlayer.src = memoURI;
+ 
   return memoURI;
 }
 

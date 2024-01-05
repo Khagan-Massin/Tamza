@@ -45,6 +45,15 @@ h1 {
   background-color: #242424;
 }
 
+dialog {
+  align-items: center;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+#qrcode {
+  margin: 1rem;
+}
  
 
 audio{
