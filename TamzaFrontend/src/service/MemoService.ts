@@ -14,8 +14,15 @@ export class MemoService {
                 'Access-Control-Allow-Origin': MemoService.backendUrl
             }
         });
+        
+         
+        const response = await fetch(request);
 
-        const response = await fetch(request)
+        if (!response.ok) {
+            throw new Error("Memo not found");
+        }
+        
+       
         const blob = await response.blob();
         return new VoiceMemo(id, blob);
 
