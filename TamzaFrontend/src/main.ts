@@ -31,12 +31,15 @@ let memoURI: string;
 const mediaConstraints = { audio: true };
 const audioType = "audio/mp3";
 
-//Resources
+//Routing
 const router = new Router();
 
 router.addRoute("listen", (params) => {
   const id = params["id"];
-  console.log("getting memo with id: " + id);
+
+  // when the user navigates to the listen page, disable the upload button 
+  // will be re-enabled when the user starts recording
+  uploadButton.disabled = true;
 
   MemoService.getMemo(id).then((memo) => {
     const audioUrl = URL.createObjectURL(memo.blob);
@@ -44,6 +47,8 @@ router.addRoute("listen", (params) => {
     audioChunks = [memo.blob];
     memoURI = audioUrl;
   });
+
+  
 });
 
 // Event Listeners
@@ -64,13 +69,14 @@ stopStartButton.onclick = () => {
 
 clipboardButton.onclick = () => {
   navigator.clipboard.writeText(created_audio_link.href);
+  updateRecordingUIState();
 };
 
 openQRcodeModal.onclick = () => {
 
   let link = created_audio_link.href;
   if (link === "") {
-    if (window.location.href.includes("listen")) {
+    if (isOnListeningPage()) {
       link = window.location.href;
     } else {
       alert("Please record or find a memo first!");
@@ -86,10 +92,12 @@ closeQRcodeModal.onclick = () => {
   qrcodeModal.close();
 }
 
-updateRecordingUIState();
-
 function hasRecording(): boolean {
   return audioChunks.length > 0 || memoURI != null;
+}
+
+function isOnListeningPage(): boolean {
+  return window.location.href.includes("listen?id=");
 }
 
 /**
@@ -120,6 +128,8 @@ function startRecording() {
 
     mediaRecorder.addEventListener("stop", function () {
       createAudioFile(audioChunks);
+      //because of the async nature of the mediaRecorder, we have to update the UI state here
+      updateRecordingUIState();
     });
   });
 }
@@ -181,6 +191,7 @@ function downloadAudio() {
  * Like disabling buttons and changing button text.
  */
 function updateRecordingUIState() {
+
   if (isRecording) {
     stopStartButton.innerText = "Stop Recording";
     uploadButton.disabled = true;
@@ -190,6 +201,11 @@ function updateRecordingUIState() {
     uploadButton.disabled = false;
     saveButton.disabled = false;
   }
+
+  if (!hasRecording()) {
+    uploadButton.disabled = true;
+  }
+ 
 }
 
 updateRecordingUIState();
