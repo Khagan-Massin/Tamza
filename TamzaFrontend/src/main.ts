@@ -54,22 +54,22 @@ router.addRoute("listen", (params) => {
 // Event Listeners
 uploadButton.onclick = () => {
   uploadAudio();
-  updateRecordingUIState();
+  updateUIState();
 };
 
 saveButton.onclick = () => {
   downloadAudio();
-  updateRecordingUIState();
+  updateUIState();
 };
 
 stopStartButton.onclick = () => {
   isRecording ? stopRecording() : startRecording();
-  updateRecordingUIState();
+  updateUIState();
 };
 
 clipboardButton.onclick = () => {
   navigator.clipboard.writeText(created_audio_link.href);
-  updateRecordingUIState();
+  updateUIState();
 };
 
 openQRcodeModal.onclick = () => {
@@ -92,6 +92,7 @@ closeQRcodeModal.onclick = () => {
   qrcodeModal.close();
 }
 
+ 
 function hasRecording(): boolean {
   return audioChunks.length > 0 || memoURI != null;
 }
@@ -129,7 +130,7 @@ function startRecording() {
     mediaRecorder.addEventListener("stop", function () {
       createAudioFile(audioChunks);
       //because of the async nature of the mediaRecorder, we have to update the UI state here
-      updateRecordingUIState();
+      updateUIState();
     });
   });
 }
@@ -190,7 +191,7 @@ function downloadAudio() {
  *  Changes the UI state based on the current recording state.
  * Like disabling buttons and changing button text.
  */
-function updateRecordingUIState() {
+function updateUIState() {
 
   if (isRecording) {
     stopStartButton.innerText = "Stop Recording";
@@ -205,7 +206,10 @@ function updateRecordingUIState() {
   if (!hasRecording()) {
     uploadButton.disabled = true;
   }
- 
+
+  if (created_audio_link.href === "" && !isOnListeningPage()) {
+    clipboardButton.disabled = true;
+  }
 }
 
-updateRecordingUIState();
+updateUIState();
