@@ -68,20 +68,23 @@ stopStartButton.onclick = () => {
 };
 
 clipboardButton.onclick = () => {
-  navigator.clipboard.writeText(created_audio_link.href);
+
+  const link = getRecordedAudioLink();
+  if (link === null) {
+    alert("Please record or find a memo first!");
+    return;
+  }
+
+  navigator.clipboard.writeText(link);
   updateUIState();
 };
 
 openQRcodeModal.onclick = () => {
+  const link = getRecordedAudioLink();
 
-  let link = created_audio_link.href;
-  if (link === "") {
-    if (isOnListeningPage()) {
-      link = window.location.href;
-    } else {
-      alert("Please record or find a memo first!");
-      return;
-    }
+  if (link === null) {
+    alert("Please record or find a memo first!");
+    return;
   }
 
   qrcodeImage.src = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + link;
@@ -99,6 +102,23 @@ function hasRecording(): boolean {
 
 function isOnListeningPage(): boolean {
   return window.location.href.includes("listen?id=");
+}
+
+/*
+* Returns the link to the recorded audio or the current page if the user is on the listen page
+* @returns {string} The link to the recorded audio or the current page if the user is on the listen page
+*/
+function getRecordedAudioLink(): string | null {
+  let link = created_audio_link.href;
+  if (link === "") {
+    if (isOnListeningPage()) {
+      link = window.location.href;
+    } else {
+      return null;
+    }
+  }
+
+  return link;
 }
 
 /**
@@ -178,6 +198,7 @@ function createAudioFile(chunks: Blob[]): string {
  * Downloads the audio file by creating a temporary link element and triggering a click event.
  */
 function downloadAudio() {
+  if (audioChunks.length === 0) throw new Error("No recording to download");
   const file = createAudioFile(audioChunks);
   const a = document.createElement("a");
   a.href = file;
@@ -205,11 +226,9 @@ function updateUIState() {
 
   if (!hasRecording()) {
     uploadButton.disabled = true;
+     
   }
 
-  if (created_audio_link.href === "" && !isOnListeningPage()) {
-    clipboardButton.disabled = true;
-  }
 }
 
 updateUIState();
