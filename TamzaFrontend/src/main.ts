@@ -104,7 +104,7 @@ function isOnListeningPage(): boolean {
   return window.location.href.includes("listen?id=");
 }
 
-/*
+/** 
 * Returns the link to the recorded audio or the current page if the user is on the listen page
 * @returns {string} The link to the recorded audio or the current page if the user is on the listen page
 */
