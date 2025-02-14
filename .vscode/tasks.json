@@ -1,0 +1,37 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Tamza npm run dev",
+        "type": "shell",
+        "command": "cd ../TamzaFrontend && npm run dev",
+        "problemMatcher": [],
+        "options": {
+          "shell": {
+            "executable": "cmd.exe",
+            "args": ["/d", "/c"]
+          }
+        }
+      },
+      {
+        "label": "Tamza dotnet watch",
+        "type": "shell",
+        "command": "cd ../TamzaBackend && dotnet watch",
+        "problemMatcher": [],
+        "options": {
+          "shell": {
+            "executable": "cmd.exe",
+            "args": ["/d", "/c"]
+          }
+        }
+      },
+      // run both tasks
+      {
+        "label": "run Tamza",
+        "dependsOn": [
+          "Tamza npm run dev",
+          "Tamza dotnet watch"
+        ]
+      }
+    ]
+  }

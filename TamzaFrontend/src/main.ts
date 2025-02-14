@@ -48,11 +48,14 @@ router.addRoute("listen", (params) => {
     memoURI = audioUrl;
   });
 
-  
+  created_audio_link.href = window.location.href;
+  created_audio_link.innerText = window.location.href;
+
 });
 
 // Event Listeners
 uploadButton.onclick = () => {
+  
   uploadAudio();
   updateUIState();
 };
@@ -104,6 +107,14 @@ function isOnListeningPage(): boolean {
   return window.location.href.includes("listen?id=");
 }
 
+function takeBackFromListeningPage(): void {
+  if (isOnListeningPage()) {
+    router.navigate("/");
+  }
+  created_audio_link.href = "";
+  created_audio_link.innerText = "";
+}
+
 /** 
 * Returns the link to the recorded audio or the current page if the user is on the listen page
 * @returns {string} The link to the recorded audio or the current page if the user is on the listen page
@@ -128,8 +139,10 @@ function getRecordedAudioLink(): string | null {
  * adds event listeners to mediaRecorder
  */
 function startRecording() {
-  if (isRecording) throw new Error("Already recording");
 
+  if (isRecording) throw new Error("Already recording");
+  if (isOnListeningPage()) takeBackFromListeningPage()
+  
   // reset recorded chunks
   audioChunks = [];
 
@@ -173,6 +186,7 @@ function uploadAudio() {
 
       created_audio_link.innerText = uri;
       created_audio_link.href = uri;
+      updateUIState();
     })
     .catch((error) => {
       alert(error);
@@ -226,9 +240,21 @@ function updateUIState() {
 
   if (!hasRecording()) {
     uploadButton.disabled = true;
-     
   }
 
+  if (getRecordedAudioLink()){  
+    console.log("has recording")
+    clipboardButton.disabled = false;
+    openQRcodeModal.disabled = false;
+    saveButton.disabled = false;
+  }
+  else {
+    console.log("doesnt have recording")
+    clipboardButton.disabled = true;
+    openQRcodeModal.disabled = true;
+    saveButton.disabled = true;
+  }
+ 
 }
 
 updateUIState();
