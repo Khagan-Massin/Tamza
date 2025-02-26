@@ -2,6 +2,10 @@ import { Router } from "./router";
 import { MemoService } from "./service/MemoService";
 import "./style.css";
 
+MemoService.test().then((r) => {
+   r ? console.log("Connected to backend") : console.error("Could not connect to backend");
+})
+
 // Dom Elements
 const stopStartButton = document.querySelector("#stopstart-button") as HTMLButtonElement;
 const uploadButton = document.querySelector("#upload-button") as HTMLButtonElement;
@@ -155,7 +159,6 @@ function startRecording() {
     mediaRecorder.start();
 
     mediaRecorder.addEventListener("dataavailable", function (event) {
-     
         audioChunks.push(event.data);
         console.log(audioChunks)
     });

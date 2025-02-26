@@ -1,16 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 //
-namespace Tamza.Controllers
-{
-
-
+namespace Tamza.Controllers;
 
     [Route("api/[controller]")]
     [ApiController]
     public class MemoController : ControllerBase
     {
-
-
         private readonly string foldername = "AudioFiles";
         // commonly used mime types for audio files
         private readonly string[] allowedMimeTypes = new string[] { 
@@ -18,6 +13,13 @@ namespace Tamza.Controllers
             "audio/x-wav", "audio/ogg", "audio/x-flac", 
             "audio/x-aiff", "audio/x-m4a", "audio/x-ms-wma"
         };
+
+        [HttpGet]
+        [Route("test")]
+        public IActionResult Test()
+        {
+            return Ok("Hello from MemoController");
+        }
 
 
         [HttpPost]
@@ -79,6 +81,8 @@ namespace Tamza.Controllers
                     await file.CopyToAsync(fileStream);
                 }
 
+                Console.WriteLine($"File saved to {filePath}");
+
                 return Ok(id);
             }
             else
@@ -91,7 +95,7 @@ namespace Tamza.Controllers
         [HttpGet]
         public async Task<IActionResult> Get(string id)
         {
-            Console.WriteLine(id);
+            Console.WriteLine($"Getting memo with id: {id}");
 
             var filePath = Path.Combine(this.foldername, $"{id}.mp3"); // Change the file extension if needed
 
@@ -109,9 +113,5 @@ namespace Tamza.Controllers
             {
                 return NotFound();
             }
-
-
-
         }
     }
-}

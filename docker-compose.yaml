@@ -1,0 +1,16 @@
+version: '3'
+services:
+  backend:
+    image: TamzaBackend:latest
+    build:
+      context: ./TamzaBackend
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8080:8080"
+  frontend:
+    image: TamzaFrontend:latest
+    build:
+      context: ./TamzaFrontend
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "" 

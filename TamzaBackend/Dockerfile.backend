@@ -1,0 +1,30 @@
+# Base image: Uses Microsoft's official .NET 9 SDK image for building
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+
+# Set working directory inside the container
+WORKDIR /app
+
+# Copy everything from your project into the container
+COPY . .
+
+# Restore dependencies (pull down NuGet packages)
+RUN dotnet restore
+
+# Build the application
+RUN dotnet publish -c Release -o /publish
+
+# Runtime image: This is a **lighter** .NET 9 image, only for running the app (not for building it)
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+
+# Set working directory for runtime
+WORKDIR /app
+
+# Copy the published output from the build stage
+COPY --from=build /publish .
+
+EXPOSE 8080
+ENV ASPNETCORE_URLS=http://*:8080
+
+
+# Run the app inside the container
+CMD ["dotnet", "TamzaBackend.dll"]

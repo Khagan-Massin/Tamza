@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
+using Microsoft.Extensions.FileProviders;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -18,18 +19,14 @@ WebApplication app = builder.Build();
 
 app.UseCors("corsapp");
 
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
     app.UseDeveloperExceptionPage();
-    app.UseHttpLogging();
+    // app.UseHttpLogging();
 }
-
- 
- 
 
 app.UseHttpsRedirection();
 

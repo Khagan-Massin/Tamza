@@ -3,7 +3,19 @@ import { VoiceMemo } from "../service/model/VoiceMemo";
 export class MemoService {
 
     // ok be sure to make this a env variable and also its https
-    private static backendUrl = "https://localhost:7097";
+    private static backendUrl = import.meta.env.VITE_TAMZA_BACKEND_URL;
+
+    static async test(): Promise<boolean> {
+        const response = await fetch(MemoService.backendUrl + "/api/test", {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+                'Access-Control-Allow-Origin': MemoService.backendUrl
+            }
+        });
+
+        return response.ok;
+    }
 
     static async getMemo(id: string): Promise<VoiceMemo> {
 
