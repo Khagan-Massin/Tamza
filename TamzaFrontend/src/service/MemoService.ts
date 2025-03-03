@@ -6,7 +6,7 @@ export class MemoService {
     private static backendUrl = import.meta.env.VITE_TAMZA_BACKEND_URL;
 
     static async test(): Promise<boolean> {
-        const response = await fetch(MemoService.backendUrl + "/api/test", {
+        const response = await fetch(MemoService.backendUrl + "/api/Memo/test", {
             method: 'GET',
             mode: 'cors',
             headers: {

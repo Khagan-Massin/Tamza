@@ -1,16 +1,37 @@
+# version: '3'
+# services:
+#   backend:
+#     image: tamzabackend:latest
+#     build:
+#       context: ./TamzaBackend
+#       dockerfile: Dockerfile.backend
+#     ports:
+#       - "8080:8080"
+#   frontend:
+#     depends_on:
+#       - backend
+#     image: tamzafrontend:latest
+#     build:
+#       context: ./TamzaFrontend
+#       dockerfile: Dockerfile.frontend
+#     environment:
+#       - VITE_TAMZA_BACKEND_URL=http://backend:8080
+#     ports:
+#       - "80:80" 
 version: '3'
 services:
   backend:
-    image: TamzaBackend:latest
     build:
       context: ./TamzaBackend
       dockerfile: Dockerfile.backend
     ports:
       - "8080:8080"
   frontend:
-    image: TamzaFrontend:latest
+    depends_on:
+      - backend
     build:
       context: ./TamzaFrontend
       dockerfile: Dockerfile.frontend
+      # TODO: make so you can pass the backend url as an argument instead in the Dockerfile
     ports:
-      - "" 
+      - "80:80"

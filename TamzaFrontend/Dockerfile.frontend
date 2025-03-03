@@ -1,0 +1,31 @@
+# Use Node.js to build the project
+FROM node:18 AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Copy package.json and package-lock.json
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the application
+COPY . .
+
+# Build the Vite project and set the backend URL look at the backend dockerfile so it matches and all that
+RUN npm run build
+
+# Use Nginx to serve the built files
+FROM nginx:alpine
+
+# Copy the built files from the previous stage
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy a custom Nginx configuration (optional)
+COPY nginx.conf /etc/nginx/nginx.conf
+
+EXPOSE 80
+
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
