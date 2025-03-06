@@ -5,10 +5,11 @@ namespace Tamza.Controllers;
     [Route("api/[controller]")]
     [ApiController]
     public class MemoController : ControllerBase
-    {
-        private readonly string foldername = "AudioFiles";
+    {   
+        private readonly int MAX_NUMBER_OF_FILES = 250;  
+        private readonly string FOLDER_NAME = "AudioFiles";
         // commonly used mime types for audio files
-        private readonly string[] allowedMimeTypes = new string[] { 
+        private readonly string[] ALLOWED_MIME_TYPES = new string[] { 
             "audio/mpeg", "audio/mp3", "audio/wav", 
             "audio/x-wav", "audio/ogg", "audio/x-flac", 
             "audio/x-aiff", "audio/x-m4a", "audio/x-ms-wma"
@@ -16,12 +17,8 @@ namespace Tamza.Controllers;
 
         [HttpGet]
         [Route("test")]
-        public IActionResult Test()
-        {
-            return Ok("Hello from MemoController");
-        }
-
-
+        public IActionResult Test() => Ok("Hello from MemoController");
+        
         [HttpPost]
         [Route("echo")]
         public async Task<IActionResult> Echo(IFormFile file)
@@ -39,24 +36,15 @@ namespace Tamza.Controllers;
             {
                 return BadRequest("Empty file.");
             }
-
-
-
         }
 
         [HttpPost]
         public async Task<IActionResult> Post(IFormFile file)
         {
 
-            if (file == null)
-            {
-                return BadRequest("No file received.");
-            }
-
-            if (!this.allowedMimeTypes.Contains(file.ContentType))
-            {
-                return BadRequest("Not an audio file.");
-            }
+            if (file == null) return BadRequest("No file received.");
+            if (file.Length <= 0) return BadRequest("Empty file.");
+            if (!this.ALLOWED_MIME_TYPES.Contains(file.ContentType)) return BadRequest("Not an audio file.");
 
             DriveInfo drive = new DriveInfo(Directory.GetCurrentDirectory());
             if (drive.AvailableFreeSpace < file.Length)
@@ -64,32 +52,29 @@ namespace Tamza.Controllers;
                 return BadRequest("Not enough disk space.");
             }
 
-            string directoryPath = Path.Combine(Directory.GetCurrentDirectory(), this.foldername);
-
+            string directoryPath = Path.Combine(Directory.GetCurrentDirectory(), this.FOLDER_NAME);
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
 
-            if (file.Length > 0)
+            int numberOfFiles = Directory.GetFiles(this.FOLDER_NAME).Length;
+            if (numberOfFiles >= MAX_NUMBER_OF_FILES)
             {
-                string id = Guid.NewGuid().ToString();
-                string filePath = Path.Combine(this.foldername, $"{id}.mp3"); // Change the file extension if needed
-
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(fileStream);
-                }
-
-                Console.WriteLine($"File saved to {filePath}");
-
-                return Ok(id);
-            }
-            else
-            {
-                return BadRequest("Empty file.");
+                return BadRequest("Maximum number of recorded memo's reached.");
             }
 
+            string id = Guid.NewGuid().ToString();
+            string filePath = Path.Combine(this.FOLDER_NAME, $"{id}.mp3"); // Change the file extension if needed
+
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(fileStream);
+            }
+
+            Console.WriteLine($"File saved to {filePath} with id: {id}");
+
+            return Ok(id);
         }
 
         [HttpGet]
@@ -97,7 +82,10 @@ namespace Tamza.Controllers;
         {
             Console.WriteLine($"Getting memo with id: {id}");
 
-            var filePath = Path.Combine(this.foldername, $"{id}.mp3"); // Change the file extension if needed
+            string directoryPath = Path.Combine(Directory.GetCurrentDirectory(), this.FOLDER_NAME);
+            if (!Directory.Exists(directoryPath)) return NotFound("No memo's found.");
+
+            var filePath = Path.Combine(this.FOLDER_NAME, $"{id}.mp3"); // Change the file extension if needed
 
             if (System.IO.File.Exists(filePath))
             {
@@ -111,7 +99,7 @@ namespace Tamza.Controllers;
             }
             else
             {
-                return NotFound();
+                return NotFound("This memo does not exist.");
             }
         }
     }
