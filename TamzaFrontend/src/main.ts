@@ -61,7 +61,6 @@ router.addRoute("listen", (params) => {
 
 // Event Listeners
 uploadButton.onclick = () => {
-  
   uploadAudio();
   updateUIState();
 };
